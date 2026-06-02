@@ -6,7 +6,10 @@ import PasswordForm from './PasswordForm'
 import EditForm from './EditForm'
 import type { Fiche } from '@/lib/types'
 
-type Props = { params: Promise<{ token: string }> }
+type Props = {
+  params: Promise<{ token: string }>
+  searchParams: Promise<{ claim?: string }>
+}
 
 async function getFiche(token: string): Promise<Fiche | null> {
   const supabase = createServerClient()
@@ -19,15 +22,16 @@ async function getFiche(token: string): Promise<Fiche | null> {
   return data as Fiche
 }
 
-export default async function EditPage({ params }: Props) {
+export default async function EditPage({ params, searchParams }: Props) {
   const { token } = await params
+  const { claim } = await searchParams
   const fiche = await getFiche(token)
 
   if (!fiche) notFound()
 
   // Fiche pas encore revendiquée → formulaire d'activation
   if (!fiche.is_claimed) {
-    return <ClaimForm token={token} />
+    return <ClaimForm token={token} claimCode={claim} />
   }
 
   // Fiche revendiquée → vérifier la session

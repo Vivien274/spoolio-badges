@@ -17,6 +17,7 @@ export interface FicheData {
 export interface Fiche {
   id: string
   token: string
+  claim_code: string | null
   is_claimed: boolean
   data: FicheData
   failed_attempts: number

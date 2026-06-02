@@ -9,7 +9,7 @@ const initial: ActionState = {}
 const BLOOD_GROUPS = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 const SPOOLIO_BLUE = '#1B4FD8'
 
-export default function ClaimForm({ token }: { token: string }) {
+export default function ClaimForm({ token, claimCode }: { token: string; claimCode?: string }) {
   const action = claimFiche.bind(null, token)
   const [state, formAction, isPending] = useActionState(action, initial)
   const [preview, setPreview] = useState<string | null>(null)
@@ -62,6 +62,7 @@ export default function ClaimForm({ token }: { token: string }) {
                   required
                   autoComplete="off"
                   autoFocus
+                  defaultValue={claimCode ?? ''}
                   placeholder="Code fourni avec ton badge"
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-lime-400"
                 />
