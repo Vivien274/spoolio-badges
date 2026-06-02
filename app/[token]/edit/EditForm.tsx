@@ -123,12 +123,12 @@ export default function EditForm({ token, data }: Props) {
               <h2 className="font-black text-gray-800 text-sm uppercase tracking-wider">Contacts d&apos;urgence</h2>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Contact 1 — Nom</label>
-                  <input name="contact1_nom" type="text" defaultValue={data.contact1_nom ?? ''} placeholder="Maman" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Contact 1 — Nom <span className="text-red-500">*</span></label>
+                  <input name="contact1_nom" type="text" required defaultValue={data.contact1_nom ?? ''} placeholder="Maman" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Téléphone</label>
-                  <input name="contact1_tel" type="tel" defaultValue={data.contact1_tel ?? ''} placeholder="06 12 34 56 78" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Téléphone <span className="text-red-500">*</span></label>
+                  <input name="contact1_tel" type="tel" required defaultValue={data.contact1_tel ?? ''} placeholder="06 12 34 56 78" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">

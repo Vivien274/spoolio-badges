@@ -116,6 +116,8 @@ export async function claimFiche(
 
   const ficheData = extractFicheData(formData)
   if (!ficheData.prenom) return { error: 'Le prénom ou surnom est requis.' }
+  if (!ficheData.contact1_nom) return { error: 'Le nom du contact 1 est requis.' }
+  if (!ficheData.contact1_tel) return { error: 'Le téléphone du contact 1 est requis.' }
 
   const { locked, minutesLeft } = await checkLock(token)
   if (locked) return { error: `Trop de tentatives. Réessaie dans ${minutesLeft} min.` }
@@ -161,7 +163,7 @@ export async function claimFiche(
   if (updateError) return { error: "Erreur lors de l'activation. Réessaie." }
 
   await setEditSession(token)
-  redirect(`/${token}/edit`)
+  redirect(`/${token}`)
 }
 
 /** Vérification du mot de passe pour une fiche déjà revendiquée */
@@ -207,6 +209,8 @@ export async function updateFiche(
 
   const ficheData = extractFicheData(formData)
   if (!ficheData.prenom) return { error: 'Le prénom ou surnom est requis.' }
+  if (!ficheData.contact1_nom) return { error: 'Le nom du contact 1 est requis.' }
+  if (!ficheData.contact1_tel) return { error: 'Le téléphone du contact 1 est requis.' }
 
   // Conserver la photo existante si pas de nouvelle
   const supabase = createServerClient()
