@@ -12,7 +12,7 @@ async function getAllFiches(): Promise<Fiche[]> {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('fiches')
-    .select('id, token, claim_code, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
+    .select('id, token, claim_code, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
     .order('created_at', { ascending: false })
     .limit(500)
   return (data ?? []) as Fiche[]
@@ -88,7 +88,8 @@ export default async function DashboardPage() {
                 <tr className="bg-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   <th className="px-6 py-2 text-left font-semibold">Token</th>
                   <th className="px-6 py-2 text-left font-semibold">Claim code</th>
-                  <th className="px-6 py-2 text-left font-semibold">Prénom</th>
+                  <th className="px-6 py-2 text-left font-semibold">Type</th>
+                  <th className="px-6 py-2 text-left font-semibold">Nom</th>
                   <th className="px-6 py-2 text-left font-semibold">Statut</th>
                   <th className="px-6 py-2 text-left font-semibold">Créée le</th>
                   <th className="px-6 py-2"></th>
@@ -121,8 +122,13 @@ export default async function DashboardPage() {
                         <span className="text-xs text-gray-300">utilisé</span>
                       )}
                     </td>
+                    <td className="px-6 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                        {fiche.type ?? 'festivalier'}
+                      </span>
+                    </td>
                     <td className="px-6 py-3 text-gray-700 font-medium">
-                      {fiche.data?.prenom ?? '—'}
+                      {fiche.data?.nom ?? fiche.data?.prenom ?? '—'}
                     </td>
                     <td className="px-6 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${

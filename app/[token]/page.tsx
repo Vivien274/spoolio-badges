@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { Phone, AlertTriangle, Tent, Globe, MessageCircle } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase'
 import Particles from '@/app/components/Particles'
+import FicheEnfant from './FicheEnfant'
+import FicheAnimal from './FicheAnimal'
 import type { Fiche } from '@/lib/types'
 
 type Props = { params: Promise<{ token: string }> }
@@ -14,7 +16,7 @@ async function getFiche(token: string): Promise<Fiche | null> {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('fiches')
-    .select('id, token, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
+    .select('id, token, claim_code, password_hash, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
     .eq('token', token)
     .single()
   if (error || !data) return null
@@ -24,10 +26,18 @@ async function getFiche(token: string): Promise<Fiche | null> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params
   const fiche = await getFiche(token)
-  const name = fiche?.data?.prenom
+  const type = fiche?.type ?? 'festivalier'
+  const name =
+    type === 'animal' ? fiche?.data?.nom :
+    type === 'enfant' ? fiche?.data?.prenom :
+    fiche?.data?.prenom
+  const suffix =
+    type === 'animal' ? 'Fiche animal SOS' :
+    type === 'enfant' ? 'Fiche enfant SOS' :
+    'Fiche SOS festivalier'
   return {
-    title: name ? `${name} — Fiche SOS` : 'Fiche SOS — Spoolio Badge',
-    description: 'Fiche SOS festivalier Spoolio',
+    title: name ? `${name} — ${suffix}` : `${suffix} — Spoolio Badge`,
+    description: `${suffix} Spoolio`,
   }
 }
 
@@ -61,6 +71,12 @@ export default async function FichePage({ params }: Props) {
     )
   }
 
+  const type = fiche.type ?? 'festivalier'
+
+  if (type === 'enfant') return <FicheEnfant fiche={fiche} />
+  if (type === 'animal') return <FicheAnimal fiche={fiche} />
+
+  // ── festivalier (default) ──
   const d = fiche.data
 
   return (
@@ -103,25 +119,16 @@ export default async function FichePage({ params }: Props) {
 
           {/* ── SÉPARATEUR TICKET ── */}
           <div className="relative h-0 z-10">
-            {/* Encoches latérales */}
-            <div
-              className="absolute -left-3 -top-3.5 w-7 h-7 rounded-full"
-              style={{ background: SPOOLIO_BLUE }}
-            />
-            <div
-              className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full"
-              style={{ background: SPOOLIO_BLUE }}
-            />
+            <div className="absolute -left-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
+            <div className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
           </div>
 
           {/* ── BOTTOM : blanc ── */}
           <div className="bg-white rounded-b-3xl px-6 pb-6 pt-0">
-            {/* Ligne pointillée sous le séparateur */}
             <div className="border-t-2 border-dashed border-gray-200 mx-2 mb-5 pt-5" />
 
             <div className="space-y-4">
 
-              {/* Contacts d'urgence */}
               {(d.contact1_nom || d.contact1_tel || d.contact2_nom || d.contact2_tel) && (
                 <section>
                   <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-2">
@@ -132,10 +139,7 @@ export default async function FichePage({ params }: Props) {
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-gray-700 text-sm">{d.contact1_nom}</span>
                         {d.contact1_tel && (
-                          <a
-                            href={`tel:${d.contact1_tel}`}
-                            className="text-red-500 font-black text-lg hover:underline"
-                          >
+                          <a href={`tel:${d.contact1_tel}`} className="text-red-500 font-black text-lg hover:underline">
                             {d.contact1_tel}
                           </a>
                         )}
@@ -145,10 +149,7 @@ export default async function FichePage({ params }: Props) {
                       <div className="flex items-center justify-between border-t border-gray-100 pt-2">
                         <span className="font-semibold text-gray-700 text-sm">{d.contact2_nom}</span>
                         {d.contact2_tel && (
-                          <a
-                            href={`tel:${d.contact2_tel}`}
-                            className="text-red-500 font-black text-lg hover:underline"
-                          >
+                          <a href={`tel:${d.contact2_tel}`} className="text-red-500 font-black text-lg hover:underline">
                             {d.contact2_tel}
                           </a>
                         )}
@@ -158,7 +159,6 @@ export default async function FichePage({ params }: Props) {
                 </section>
               )}
 
-              {/* Infos médicales */}
               {(d.infos_medicales || d.groupe_sanguin) && (
                 <section className="border-t border-gray-100 pt-4">
                   <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-2">
@@ -175,7 +175,6 @@ export default async function FichePage({ params }: Props) {
                 </section>
               )}
 
-              {/* Camping */}
               {d.camping && (
                 <section className="border-t border-gray-100 pt-4">
                   <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-1">
@@ -185,7 +184,6 @@ export default async function FichePage({ params }: Props) {
                 </section>
               )}
 
-              {/* Langues */}
               {d.langues && (
                 <section className="border-t border-gray-100 pt-4">
                   <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-1">
@@ -195,7 +193,6 @@ export default async function FichePage({ params }: Props) {
                 </section>
               )}
 
-              {/* Message */}
               {d.message && (
                 <section className="border-t border-gray-100 pt-4">
                   <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-1">
@@ -209,7 +206,6 @@ export default async function FichePage({ params }: Props) {
           </div>
         </div>
 
-        {/* ═══ BOUTONS SOUS LE TICKET ═══ */}
         <div className="mt-4 space-y-2">
           <Link
             href={`/${token}/edit`}
