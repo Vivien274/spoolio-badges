@@ -15,7 +15,22 @@ const PARTICLES = [
   { size: 4,  top: '92%', left: '72%', delay: '0.2s',  duration: '8s'  },
 ]
 
-export default function Particles() {
+// Confetti colorés pour le style enfant
+const ENFANT_COLORS = ['#FDE68A', '#FDA4AF', '#C4B5FD', '#6EE7B7', '#FCA5A5', '#A5F3FC']
+
+// Points ambrés/crème pour le style animal
+const ANIMAL_COLORS = ['#FCD34D', '#FDE68A', '#A7F3D0', '#FCA5A5', '#D4A27F', '#FEF3C7']
+
+interface Props {
+  variant?: 'festivalier' | 'enfant' | 'animal'
+}
+
+export default function Particles({ variant = 'festivalier' }: Props) {
+  const colors =
+    variant === 'enfant' ? ENFANT_COLORS :
+    variant === 'animal' ? ANIMAL_COLORS :
+    null // blanc par défaut
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
       <style>{`
@@ -28,12 +43,13 @@ export default function Particles() {
       {PARTICLES.map((p, i) => (
         <div
           key={i}
-          className="absolute rounded-full bg-white"
+          className="absolute rounded-full"
           style={{
             width: p.size,
             height: p.size,
             top: p.top,
             left: p.left,
+            background: colors ? colors[i % colors.length] : 'white',
             animation: `float ${p.duration} ${p.delay} ease-in-out infinite`,
           }}
         />
