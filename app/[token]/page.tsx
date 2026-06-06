@@ -147,9 +147,9 @@ export default async function FichePage({ params }: Props) {
             <div className="absolute -left-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
             <div className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
             {/* Petites perforations intérieures */}
-            <div className="absolute left-6 right-6 -top-1.5 flex justify-between pointer-events-none">
+            <div className="absolute left-6 right-6 -top-1 flex justify-between pointer-events-none">
               {Array.from({ length: 13 }).map((_, i) => (
-                <div key={i} className="w-3 h-3 rounded-full" style={{ background: SPOOLIO_BLUE }} />
+                <div key={i} className="w-2 h-2 rounded-full" style={{ background: SPOOLIO_BLUE }} />
               ))}
             </div>
           </div>
@@ -237,12 +237,12 @@ export default async function FichePage({ params }: Props) {
 
             {/* ── Barcode décoratif ── */}
             <div className="mt-6 pt-4 border-t border-gray-100">
-              <div className="flex items-end gap-px justify-center h-8 opacity-[0.18]">
+              <div className="flex items-end gap-px w-full h-8 opacity-[0.18]">
                 {BARCODE.map(([w, h], i) => (
                   <div
                     key={i}
                     className="bg-gray-900"
-                    style={{ width: w, height: `${h}%` }}
+                    style={{ flexGrow: w, height: `${h}%` }}
                   />
                 ))}
               </div>
