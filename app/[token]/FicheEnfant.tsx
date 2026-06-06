@@ -1,110 +1,113 @@
 import Link from 'next/link'
-import { Phone, AlertTriangle, MessageCircle } from 'lucide-react'
+import { AlertTriangle, MessageCircle } from 'lucide-react'
 import Particles from '@/app/components/Particles'
 import type { Fiche } from '@/lib/types'
 
-const BG = '#7C3AED'      // violet vif
-const CARD_TOP = '#FEF08A' // jaune soleil
-const TEXT_TOP = '#713F12' // brun chaud
+const BG = '#7C3AED'
 
 export default function FicheEnfant({ fiche }: { fiche: Fiche }) {
   const { token, data: d } = fiche
 
   return (
     <main
-      className="min-h-screen px-4 py-8 flex flex-col items-center"
+      className="min-h-screen px-4 py-8 flex flex-col items-center justify-start"
       style={{ background: BG }}
     >
       <Particles variant="enfant" />
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm relative z-10">
 
-        <div className="relative">
+        {/* ═══ CARTE ═══ */}
+        <div className="rounded-3xl overflow-hidden shadow-2xl">
 
-          {/* ── TOP ── */}
-          <div className="rounded-t-3xl px-6 pt-5 pb-10" style={{ background: CARD_TOP }}>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">👶</span>
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: TEXT_TOP }}>
-                Fiche Enfant SOS · Spoolio
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              {d.photo_url && (
+          {/* ── Header gradient ── */}
+          <div
+            className="px-6 pt-6 pb-8 text-center"
+            style={{ background: 'linear-gradient(160deg, #FDE68A 0%, #FB923C 100%)' }}
+          >
+            <p className="text-xs font-black uppercase tracking-widest text-orange-800 mb-4">
+              ✋ Fiche Enfant SOS · Spoolio
+            </p>
+
+            {/* Photo */}
+            <div className="flex justify-center mb-4">
+              {d.photo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={d.photo_url}
                   alt={d.prenom ?? 'Photo'}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white/70 shadow-lg flex-shrink-0"
+                  className="w-28 h-28 rounded-full object-cover shadow-xl"
+                  style={{ border: '5px solid white' }}
                 />
+              ) : (
+                <div
+                  className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center text-5xl shadow-xl"
+                  style={{ border: '5px solid white' }}
+                >
+                  👶
+                </div>
               )}
-              <div className="min-w-0">
-                <h1 className="text-3xl font-black leading-tight" style={{ color: TEXT_TOP }}>
-                  {d.prenom || 'Enfant'}
-                </h1>
-              </div>
             </div>
+
+            <h1 className="text-4xl font-black text-orange-900 leading-tight">
+              {d.prenom || 'Enfant'}
+            </h1>
+            {d.message && (
+              <p className="text-orange-800 text-sm mt-2 italic leading-snug">
+                &ldquo;{d.message}&rdquo;
+              </p>
+            )}
           </div>
 
-          {/* ── SÉPARATEUR ── */}
-          <div className="relative h-0 z-10">
-            <div className="absolute -left-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: BG }} />
-            <div className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: BG }} />
-          </div>
+          {/* ── Corps blanc ── */}
+          <div className="bg-white px-5 pb-6 pt-5 space-y-4">
 
-          {/* ── BOTTOM ── */}
-          <div className="bg-white rounded-b-3xl px-6 pb-6 pt-0">
-            <div className="border-t-2 border-dashed border-gray-200 mx-2 mb-5 pt-5" />
+            {/* Appel parents — boutons grands */}
+            {(d.tel_parent_1 || d.tel_parent_2) && (
+              <section>
+                <p className="text-xs font-black uppercase tracking-wider text-violet-500 mb-3">
+                  📞 Appelle mes parents !
+                </p>
+                <div className="space-y-2">
+                  {d.tel_parent_1 && (
+                    <a
+                      href={`tel:${d.tel_parent_1}`}
+                      className="flex items-center justify-between w-full rounded-2xl px-4 py-3.5 font-black text-white text-lg transition-opacity hover:opacity-90 active:opacity-75"
+                      style={{ background: '#7C3AED' }}
+                    >
+                      <span className="text-sm font-bold opacity-80">Parent 1</span>
+                      <span>{d.tel_parent_1}</span>
+                    </a>
+                  )}
+                  {d.tel_parent_2 && (
+                    <a
+                      href={`tel:${d.tel_parent_2}`}
+                      className="flex items-center justify-between w-full rounded-2xl px-4 py-3.5 font-black text-violet-800 text-lg transition-opacity hover:opacity-90 active:opacity-75"
+                      style={{ background: '#EDE9FE' }}
+                    >
+                      <span className="text-sm font-bold opacity-70">Parent 2</span>
+                      <span>{d.tel_parent_2}</span>
+                    </a>
+                  )}
+                </div>
+              </section>
+            )}
 
-            <div className="space-y-4">
+            {/* Infos médicales */}
+            {d.medical && (
+              <section className="border-t border-gray-100 pt-4">
+                <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-600 mb-2">
+                  <AlertTriangle size={12} /> Infos médicales importantes
+                </p>
+                <div className="bg-amber-50 border-l-4 border-amber-400 rounded-r-xl px-3 py-2.5">
+                  <p className="text-gray-800 text-sm whitespace-pre-wrap">{d.medical}</p>
+                </div>
+              </section>
+            )}
 
-              {(d.tel_parent_1 || d.tel_parent_2) && (
-                <section>
-                  <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider mb-2" style={{ color: '#7C3AED' }}>
-                    <Phone size={12} /> Appelle mes parents
-                  </h2>
-                  <div className="space-y-2">
-                    {d.tel_parent_1 && (
-                      <div className="flex items-center justify-between bg-violet-50 rounded-xl px-3 py-2">
-                        <span className="font-semibold text-gray-700 text-sm">Parent 1</span>
-                        <a href={`tel:${d.tel_parent_1}`} className="font-black text-lg hover:underline" style={{ color: '#7C3AED' }}>
-                          {d.tel_parent_1}
-                        </a>
-                      </div>
-                    )}
-                    {d.tel_parent_2 && (
-                      <div className="flex items-center justify-between bg-violet-50 rounded-xl px-3 py-2">
-                        <span className="font-semibold text-gray-700 text-sm">Parent 2</span>
-                        <a href={`tel:${d.tel_parent_2}`} className="font-black text-lg hover:underline" style={{ color: '#7C3AED' }}>
-                          {d.tel_parent_2}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-
-              {d.medical && (
-                <section className="border-t border-gray-100 pt-4">
-                  <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-500 mb-2">
-                    <AlertTriangle size={12} /> Infos médicales
-                  </h2>
-                  <p className="text-gray-700 text-sm whitespace-pre-wrap bg-amber-50 rounded-xl px-3 py-2">{d.medical}</p>
-                </section>
-              )}
-
-              {d.message && (
-                <section className="border-t border-gray-100 pt-4">
-                  <h2 className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-400 mb-1">
-                    <MessageCircle size={12} /> Message
-                  </h2>
-                  <p className="text-gray-700 text-sm italic">{d.message}</p>
-                </section>
-              )}
-
-            </div>
           </div>
         </div>
 
+        {/* ── Bouton modifier ── */}
         <div className="mt-4">
           <Link
             href={`/${token}/edit`}
