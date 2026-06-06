@@ -78,6 +78,15 @@ export default async function FichePage({ params }: Props) {
 
   // ── festivalier (default) ──
   const d = fiche.data
+  const ticketNum = token.slice(-8).toUpperCase()
+
+  // Barres de barcode (largeur px, hauteur %)
+  const BARCODE: [number, number][] = [
+    [2,100],[1,70],[3,100],[1,100],[2,70],[1,100],[1,70],[3,100],[1,70],[2,100],
+    [1,100],[3,70],[2,100],[1,100],[1,70],[2,100],[3,70],[1,100],[2,70],[1,100],
+    [1,70],[2,100],[1,70],[3,100],[1,100],[2,70],[1,100],[1,100],[3,70],[2,100],
+    [1,100],[2,70],[1,100],[3,100],[1,70],[1,100],[2,70],[1,100],[2,100],[3,70],
+  ]
 
   return (
     <main
@@ -91,41 +100,63 @@ export default async function FichePage({ params }: Props) {
         <div className="relative">
 
           {/* ── TOP : lime green ── */}
-          <div className="bg-lime-300 rounded-t-3xl px-6 pt-5 pb-10">
-            <p className="text-xs font-black uppercase tracking-widest text-lime-800 mb-4">
-              Fiche SOS · Spoolio
-            </p>
-            <div className="flex items-center gap-4">
-              {d.photo_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={d.photo_url}
-                  alt={d.prenom ?? 'Photo'}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white/60 shadow-lg flex-shrink-0"
-                />
-              )}
-              <div className="min-w-0">
-                <h1 className="text-3xl font-black text-gray-900 leading-tight">
-                  {d.prenom || 'Festivalier'}
-                </h1>
-                {d.intro && (
-                  <p className="text-lime-800 text-sm italic mt-1 leading-snug">
-                    &ldquo;{d.intro}&rdquo;
-                  </p>
+          <div className="bg-lime-300 rounded-t-3xl relative overflow-hidden">
+            {/* Rayures de sécurité diagonales */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.045) 0px, rgba(0,0,0,0.045) 1px, transparent 1px, transparent 8px)',
+              }}
+            />
+            <div className="relative z-10 px-6 pt-5 pb-10">
+              {/* Label + numéro de ticket */}
+              <div className="flex items-start justify-between mb-4">
+                <p className="text-xs font-black uppercase tracking-widest text-lime-800">
+                  Fiche SOS · Spoolio
+                </p>
+                <p className="font-mono text-xs font-bold text-lime-700 opacity-50 tracking-wider">
+                  #{ticketNum}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                {d.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={d.photo_url}
+                    alt={d.prenom ?? 'Photo'}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white/60 shadow-lg flex-shrink-0"
+                  />
                 )}
+                <div className="min-w-0">
+                  <h1 className="text-3xl font-black text-gray-900 leading-tight">
+                    {d.prenom || 'Festivalier'}
+                  </h1>
+                  {d.intro && (
+                    <p className="text-lime-800 text-sm italic mt-1 leading-snug">
+                      &ldquo;{d.intro}&rdquo;
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ── SÉPARATEUR TICKET ── */}
+          {/* ── PERFORATIONS ── */}
           <div className="relative h-0 z-10">
+            {/* Grandes encoches latérales */}
             <div className="absolute -left-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
             <div className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
+            {/* Petites perforations intérieures */}
+            <div className="absolute left-6 right-6 -top-1.5 flex justify-between pointer-events-none">
+              {Array.from({ length: 13 }).map((_, i) => (
+                <div key={i} className="w-3 h-3 rounded-full" style={{ background: SPOOLIO_BLUE }} />
+              ))}
+            </div>
           </div>
 
           {/* ── BOTTOM : blanc ── */}
-          <div className="bg-white rounded-b-3xl px-6 pb-6 pt-0">
-            <div className="border-t-2 border-dashed border-gray-200 mx-2 mb-5 pt-5" />
+          <div className="bg-white rounded-b-3xl px-6 pb-4 pt-0">
+            <div className="mb-5 pt-6" />
 
             <div className="space-y-4">
 
@@ -203,6 +234,23 @@ export default async function FichePage({ params }: Props) {
               )}
 
             </div>
+
+            {/* ── Barcode décoratif ── */}
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-end gap-px justify-center h-8 opacity-[0.18]">
+                {BARCODE.map(([w, h], i) => (
+                  <div
+                    key={i}
+                    className="bg-gray-900"
+                    style={{ width: w, height: `${h}%` }}
+                  />
+                ))}
+              </div>
+              <p className="text-center text-[9px] font-mono tracking-[0.35em] text-gray-300 mt-1.5 uppercase">
+                Spoolio Badge
+              </p>
+            </div>
+
           </div>
         </div>
 
