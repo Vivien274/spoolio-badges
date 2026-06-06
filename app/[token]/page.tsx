@@ -148,7 +148,7 @@ export default async function FichePage({ params }: Props) {
             <div className="absolute -right-3 -top-3.5 w-7 h-7 rounded-full" style={{ background: SPOOLIO_BLUE }} />
             {/* Petites perforations intérieures */}
             <div className="absolute left-6 right-6 -top-1 flex justify-between pointer-events-none">
-              {Array.from({ length: 13 }).map((_, i) => (
+              {Array.from({ length: 24 }).map((_, i) => (
                 <div key={i} className="w-2 h-2 rounded-full" style={{ background: SPOOLIO_BLUE }} />
               ))}
             </div>
