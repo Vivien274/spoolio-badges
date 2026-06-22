@@ -23,6 +23,7 @@ export default function EditForm({ token, data, type }: Props) {
   const [deleteState, formDeleteAction, isDeleting] = useActionState(deleteAction, initial)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [photoPreview, setPhotoPreview] = useState<string | null>(data.photo_url ?? null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const heading = type === 'animal' ? (data.nom || 'Mon animal') : (data.prenom || 'Ma fiche')
@@ -33,7 +34,14 @@ export default function EditForm({ token, data, type }: Props) {
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) setPhotoPreview(URL.createObjectURL(file))
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('La photo est trop lourde (max 5 Mo). Compresse-la ou choisis-en une autre.')
+      e.target.value = ''
+      return
+    }
+    setPhotoError(null)
+    setPhotoPreview(URL.createObjectURL(file))
   }
 
   return (
@@ -73,13 +81,13 @@ export default function EditForm({ token, data, type }: Props) {
           <form action={formUpdateAction} className="space-y-5">
 
             {type === 'festivalier' && (
-              <FestivalierFields data={data} photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
+              <FestivalierFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
             )}
             {type === 'enfant' && (
-              <EnfantFields data={data} photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
+              <EnfantFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
             )}
             {type === 'animal' && (
-              <AnimalFields data={data} photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
+              <AnimalFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
             )}
 
             {updateState.error && (
@@ -95,7 +103,7 @@ export default function EditForm({ token, data, type }: Props) {
 
             <button
               type="submit"
-              disabled={isUpdating}
+              disabled={isUpdating || !!photoError}
               className="w-full bg-lime-400 hover:bg-lime-500 disabled:opacity-60 text-gray-900 font-black py-3.5 rounded-2xl transition-colors text-base"
             >
               {isUpdating ? 'Sauvegarde…' : 'Enregistrer les modifications'}
@@ -156,11 +164,12 @@ export default function EditForm({ token, data, type }: Props) {
 interface FieldsProps {
   data: FicheData
   photoPreview: string | null
+  photoError: string | null
   fileRef: React.RefObject<HTMLInputElement | null>
   onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-function PhotoField({ photoPreview, fileRef, onPhotoChange }: Omit<FieldsProps, 'data'>) {
+function PhotoField({ photoPreview, photoError, fileRef, onPhotoChange }: Omit<FieldsProps, 'data'>) {
   return (
     <div>
       <label className="block text-xs font-semibold text-gray-500 mb-1">Photo</label>
@@ -179,11 +188,14 @@ function PhotoField({ photoPreview, fileRef, onPhotoChange }: Omit<FieldsProps, 
           <p className="text-xs text-gray-400 mt-0.5">Max 5 Mo.</p>
         </div>
       </div>
+      {photoError && (
+        <p className="text-xs text-red-500 mt-1.5 font-medium">{photoError}</p>
+      )}
     </div>
   )
 }
 
-function FestivalierFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsProps) {
+function FestivalierFields({ data: d, photoPreview, photoError, fileRef, onPhotoChange }: FieldsProps) {
   return (
     <>
       <section className="space-y-3">
@@ -194,7 +206,7 @@ function FestivalierFields({ data: d, photoPreview, fileRef, onPhotoChange }: Fi
           </label>
           <input name="prenom" type="text" required defaultValue={d.prenom ?? ''} placeholder="Comment t'appelle-t-on ?" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400" />
         </div>
-        <PhotoField photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={onPhotoChange} />
+        <PhotoField photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={onPhotoChange} />
         <div>
           <label className="block text-xs font-semibold text-gray-500 mb-1">&ldquo;Si tu me trouves dans cet état…&rdquo;</label>
           <textarea name="intro" rows={2} defaultValue={d.intro ?? ''} placeholder="Un petit message pour celui qui scanne ton badge…" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400 resize-none" />
@@ -264,7 +276,7 @@ function FestivalierFields({ data: d, photoPreview, fileRef, onPhotoChange }: Fi
   )
 }
 
-function EnfantFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsProps) {
+function EnfantFields({ data: d, photoPreview, photoError, fileRef, onPhotoChange }: FieldsProps) {
   return (
     <>
       <section className="space-y-3">
@@ -275,7 +287,7 @@ function EnfantFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsP
           </label>
           <input name="prenom" type="text" required defaultValue={d.prenom ?? ''} placeholder="Prénom" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400" />
         </div>
-        <PhotoField photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={onPhotoChange} />
+        <PhotoField photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={onPhotoChange} />
       </section>
 
       <div className="border-t border-gray-100" />
@@ -309,7 +321,7 @@ function EnfantFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsP
   )
 }
 
-function AnimalFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsProps) {
+function AnimalFields({ data: d, photoPreview, photoError, fileRef, onPhotoChange }: FieldsProps) {
   return (
     <>
       <section className="space-y-3">
@@ -330,7 +342,7 @@ function AnimalFields({ data: d, photoPreview, fileRef, onPhotoChange }: FieldsP
             <input name="race" type="text" defaultValue={d.race ?? ''} placeholder="Labrador…" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400" />
           </div>
         </div>
-        <PhotoField photoPreview={photoPreview} fileRef={fileRef} onPhotoChange={onPhotoChange} />
+        <PhotoField photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={onPhotoChange} />
       </section>
 
       <div className="border-t border-gray-100" />
