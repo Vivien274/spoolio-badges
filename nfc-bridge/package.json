@@ -1,0 +1,13 @@
+{
+  "name": "spoolio-nfc-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pont local entre le lecteur NFC ACR122U et l'admin Spoolio Badges.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "nfc-pcsc": "^0.8.1"
+  }
+}

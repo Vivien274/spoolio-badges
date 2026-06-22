@@ -1,5 +1,6 @@
 # deps
 /node_modules
+/nfc-bridge/node_modules
 
 # Next.js
 /.next/

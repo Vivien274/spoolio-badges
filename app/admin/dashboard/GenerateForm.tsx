@@ -3,6 +3,7 @@
 import { useActionState, useRef } from 'react'
 import { generateFiches } from '../actions'
 import type { GenerateResult } from '../actions'
+import EncodeNfcButton from './EncodeNfcButton'
 
 const initial: GenerateResult = {}
 
@@ -60,13 +61,16 @@ export default function GenerateForm() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-gray-500">URL NFC</span>
                   <span className="text-gray-800 truncate">…/{f.token}</span>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(`https://badge.spoolio.fr/${f.token}`)}
-                    className="text-blue-500 hover:underline flex-shrink-0"
-                  >
-                    Copier
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(`https://badge.spoolio.fr/${f.token}`)}
+                      className="text-blue-500 hover:underline"
+                    >
+                      Copier
+                    </button>
+                    <EncodeNfcButton url={`https://badge.spoolio.fr/${f.token}`} />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-gray-500">Code</span>

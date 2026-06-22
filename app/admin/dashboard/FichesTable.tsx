@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import CopyButton from './CopyButton'
 import CopyEmailButton from './CopyEmailButton'
+import EncodeNfcButton from './EncodeNfcButton'
 import DeleteButton from './DeleteButton'
 import type { Fiche, FicheType } from '@/lib/types'
 
@@ -141,7 +142,7 @@ export default function FichesTable({ fiches }: Props) {
                         {fiche.data?.ref && (
                           <p className="text-xs font-bold text-gray-500">{fiche.data.ref}</p>
                         )}
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
                           <Link
                             href={`/${fiche.token}`}
                             target="_blank"
@@ -150,6 +151,7 @@ export default function FichesTable({ fiches }: Props) {
                             {fiche.token.slice(0, 12)}…
                           </Link>
                           <CopyButton text={`https://badge.spoolio.fr/${fiche.token}/edit?claim=${fiche.claim_code ?? ''}`} />
+                          <EncodeNfcButton url={`https://badge.spoolio.fr/${fiche.token}`} />
                         </div>
                       </div>
                     </td>
