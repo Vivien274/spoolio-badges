@@ -51,7 +51,7 @@ export default function GenerateForm() {
             <h2 className="font-black text-gray-900">
               {state.fiches.length} fiche{state.fiches.length > 1 ? 's' : ''} générée{state.fiches.length > 1 ? 's' : ''}
             </h2>
-            <p className="text-lime-800 text-sm">Copie les codes avant de fermer.</p>
+            <p className="text-lime-800 text-sm">Encode l&apos;URL NFC sur la puce. Donne le code au client à part (carte, SMS…) pour l&apos;activation.</p>
           </div>
 
           <div className="overflow-y-auto max-h-96 px-6 py-4 space-y-2">
@@ -59,10 +59,10 @@ export default function GenerateForm() {
               <div key={f.token} className="bg-gray-50 rounded-xl p-3 text-xs font-mono space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-gray-500">URL NFC</span>
-                  <span className="text-gray-800 truncate">…/{f.token}/edit?claim={f.claim_code}</span>
+                  <span className="text-gray-800 truncate">…/{f.token}</span>
                   <button
                     type="button"
-                    onClick={() => navigator.clipboard.writeText(`https://badge.spoolio.fr/${f.token}/edit?claim=${f.claim_code}`)}
+                    onClick={() => navigator.clipboard.writeText(`https://badge.spoolio.fr/${f.token}`)}
                     className="text-blue-500 hover:underline flex-shrink-0"
                   >
                     Copier
@@ -88,7 +88,7 @@ export default function GenerateForm() {
               type="button"
               onClick={() => {
                 const text = state.fiches!
-                  .map((f) => `URL NFC: https://badge.spoolio.fr/${f.token}/edit?claim=${f.claim_code}\nCode: ${f.claim_code}`)
+                  .map((f) => `URL NFC: https://badge.spoolio.fr/${f.token}\nCode: ${f.claim_code}`)
                   .join('\n\n')
                 navigator.clipboard.writeText(text)
               }}

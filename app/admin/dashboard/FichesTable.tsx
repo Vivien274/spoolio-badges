@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import CopyButton from './CopyButton'
+import CopyEmailButton from './CopyEmailButton'
 import DeleteButton from './DeleteButton'
 import type { Fiche, FicheType } from '@/lib/types'
 
@@ -126,7 +127,7 @@ export default function FichesTable({ fiches }: Props) {
                 <th className="px-6 py-2 text-left">Nom</th>
                 <th className="px-6 py-2 text-left">Statut</th>
                 <th className="px-6 py-2 text-left">Créée le</th>
-                <th className="px-6 py-2"></th>
+                <th className="px-6 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -186,7 +187,10 @@ export default function FichesTable({ fiches }: Props) {
                       {new Date(fiche.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })}
                     </td>
                     <td className="px-6 py-3">
-                      <DeleteButton token={fiche.token} />
+                      <div className="flex items-center gap-3">
+                        {fiche.claim_code && <CopyEmailButton fiche={fiche} />}
+                        <DeleteButton token={fiche.token} />
+                      </div>
                     </td>
                   </tr>
                 )
