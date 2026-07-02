@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Mail, Check } from 'lucide-react'
 import { buildActivationEmail } from './emailTemplate'
 import type { Fiche } from '@/lib/types'
 
@@ -21,10 +22,10 @@ export default function CopyEmailButton({ fiche }: { fiche: Fiche }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="text-blue-500 hover:text-blue-700 text-xs font-semibold transition-colors"
+      className="text-blue-500 hover:text-blue-700 transition-colors flex-shrink-0"
       title="Copier l'email d'activation"
     >
-      {copied ? '✓ Copié' : '✉ Email'}
+      {copied ? <Check size={14} className="text-lime-500" /> : <Mail size={14} />}
     </button>
   )
 }

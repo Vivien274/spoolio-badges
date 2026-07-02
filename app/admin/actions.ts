@@ -42,6 +42,7 @@ function generateClaimCode(): string {
 export interface GeneratedFiche {
   token: string
   claim_code: string
+  nfc_encoded_at: string | null
 }
 
 export interface GenerateResult {
@@ -62,6 +63,7 @@ export async function generateFiches(_prev: GenerateResult, formData: FormData):
   const rows = Array.from({ length: count }, () => ({
     token: generateToken(),
     claim_code: generateClaimCode(),
+    nfc_encoded_at: null,
     type: ficheType,
     is_claimed: false,
     data: {},
@@ -71,7 +73,22 @@ export async function generateFiches(_prev: GenerateResult, formData: FormData):
   const { error } = await supabase.from('fiches').insert(rows)
   if (error) return { error: 'Erreur lors de la création des fiches.' }
 
-  return { fiches: rows.map(({ token, claim_code }) => ({ token, claim_code })) }
+  return { fiches: rows.map(({ token, claim_code, nfc_encoded_at }) => ({ token, claim_code, nfc_encoded_at })) }
+}
+
+export async function markFicheEncoded(token: string): Promise<{ success?: boolean; error?: string; encodedAt?: string }> {
+  const authenticated = await getAdminSession()
+  if (!authenticated) return { error: 'Session expirée.' }
+
+  const encodedAt = new Date().toISOString()
+  const supabase = createServerClient()
+  const { error } = await supabase
+    .from('fiches')
+    .update({ nfc_encoded_at: encodedAt })
+    .eq('token', token)
+
+  if (error) return { error: "Impossible d'enregistrer l'encodage." }
+  return { success: true, encodedAt }
 }
 
 export async function adminDeleteFiche(_prev: ActionState, formData: FormData): Promise<ActionState> {

@@ -10,7 +10,7 @@ async function getAllFiches(): Promise<Fiche[]> {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('fiches')
-    .select('id, token, claim_code, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
+    .select('id, token, claim_code, nfc_encoded_at, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
     .order('created_at', { ascending: false })
     .limit(1000)
   return (data ?? []) as Fiche[]

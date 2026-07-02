@@ -39,6 +39,7 @@ export interface Fiche {
   id: string
   token: string
   claim_code: string | null
+  nfc_encoded_at: string | null
   password_hash: string | null
   type: FicheType
   is_claimed: boolean

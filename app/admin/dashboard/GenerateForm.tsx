@@ -69,7 +69,7 @@ export default function GenerateForm() {
                     >
                       Copier
                     </button>
-                    <EncodeNfcButton url={`https://badge.spoolio.fr/${f.token}`} />
+                    <EncodeNfcButton token={f.token} url={`https://badge.spoolio.fr/${f.token}`} encodedAt={f.nfc_encoded_at} />
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -83,6 +83,11 @@ export default function GenerateForm() {
                     Copier
                   </button>
                 </div>
+                {f.nfc_encoded_at && (
+                  <div className="text-[11px] text-lime-700 font-semibold">
+                    Encodé
+                  </div>
+                )}
               </div>
             ))}
           </div>

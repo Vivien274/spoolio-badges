@@ -17,7 +17,6 @@ const { NFC } = require('nfc-pcsc')
 const PORT = 8787
 const ALLOWED_ORIGINS = new Set([
   'https://badge.spoolio.fr',
-  'http://localhost:3000',
 ])
 
 // Codes d'identifiant d'URI (NFC Forum URI Record Type Definition)
@@ -99,9 +98,21 @@ function send(res, status, body) {
   res.end(JSON.stringify(body))
 }
 
+function isAllowedOrigin(origin) {
+  if (!origin) return false
+  if (ALLOWED_ORIGINS.has(origin)) return true
+
+  try {
+    const url = new URL(origin)
+    return ['localhost', '127.0.0.1'].includes(url.hostname)
+  } catch {
+    return false
+  }
+}
+
 const server = createServer((req, res) => {
   const origin = req.headers.origin
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (isAllowedOrigin(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type')

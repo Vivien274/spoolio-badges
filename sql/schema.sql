@@ -5,6 +5,7 @@ create table if not exists fiches (
   id              uuid        primary key default gen_random_uuid(),
   token           text        unique not null,
   claim_code      text,                               -- null une fois utilisé
+  nfc_encoded_at  timestamptz,                        -- date du dernier encodage NFC
   password_hash   text,                               -- bcrypt, jamais en clair
   is_claimed      boolean     not null default false,
   data            jsonb       not null default '{}'::jsonb,

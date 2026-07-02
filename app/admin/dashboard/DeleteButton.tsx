@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Trash2, Loader2 } from 'lucide-react'
 import { adminDeleteFiche } from '../actions'
 import type { ActionState } from '@/lib/types'
 
@@ -16,19 +17,17 @@ export default function DeleteButton({ token }: { token: string }) {
   }, [state.success, router])
 
   return (
-    <form action={formAction} className="inline-flex items-center gap-1.5">
+    <form action={formAction} className="inline-flex flex-shrink-0">
       <input type="hidden" name="token" value={token} />
       <button
         type="submit"
         disabled={isPending}
         onClick={(e) => { if (!confirm('Supprimer cette fiche ?')) e.preventDefault() }}
-        className="text-red-400 hover:text-red-600 disabled:opacity-40 text-xs font-semibold transition-colors"
+        className="text-red-400 hover:text-red-600 disabled:opacity-40 transition-colors"
+        title={state.error ?? 'Supprimer'}
       >
-        {isPending ? '…' : 'Supprimer'}
+        {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
       </button>
-      {state.error && (
-        <span className="text-red-500 text-xs" title={state.error}>⚠ {state.error}</span>
-      )}
     </form>
   )
 }

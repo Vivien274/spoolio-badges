@@ -10,6 +10,7 @@ import type { Fiche, FicheType } from '@/lib/types'
 
 type StatutFilter = 'all' | 'active' | 'migrated' | 'pending'
 type TypeFilter = 'all' | FicheType
+type NfcFilter = 'all' | 'encoded' | 'not_encoded'
 
 const TYPE_LABELS: Record<FicheType, string> = {
   festivalier: 'Festivalier',
@@ -37,6 +38,7 @@ export default function FichesTable({ fiches }: Props) {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('all')
+  const [nfcFilter, setNfcFilter] = useState<NfcFilter>('all')
 
   const filtered = useMemo(() => {
     return fiches.filter((f) => {
@@ -50,9 +52,11 @@ export default function FichesTable({ fiches }: Props) {
       }
       if (typeFilter !== 'all' && (f.type ?? 'festivalier') !== typeFilter) return false
       if (statutFilter !== 'all' && statutInfo(f).key !== statutFilter) return false
+      if (nfcFilter === 'encoded' && !f.nfc_encoded_at) return false
+      if (nfcFilter === 'not_encoded' && f.nfc_encoded_at) return false
       return true
     })
-  }, [fiches, search, typeFilter, statutFilter])
+  }, [fiches, search, typeFilter, statutFilter, nfcFilter])
 
   function FilterPill<T extends string>({
     value, current, label, onClick,
@@ -109,6 +113,15 @@ export default function FichesTable({ fiches }: Props) {
               <FilterPill value="pending" current={statutFilter} label="En attente" onClick={setStatutFilter} />
             </div>
           </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">NFC</span>
+            <div className="flex gap-1">
+              <FilterPill value="all" current={nfcFilter} label="Tous" onClick={setNfcFilter} />
+              <FilterPill value="encoded" current={nfcFilter} label="Encodé" onClick={setNfcFilter} />
+              <FilterPill value="not_encoded" current={nfcFilter} label="Non encodé" onClick={setNfcFilter} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -122,13 +135,13 @@ export default function FichesTable({ fiches }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-2 text-left">Ref / Token</th>
-                <th className="px-6 py-2 text-left">Claim code</th>
-                <th className="px-6 py-2 text-left">Type</th>
-                <th className="px-6 py-2 text-left">Nom</th>
-                <th className="px-6 py-2 text-left">Statut</th>
-                <th className="px-6 py-2 text-left">Créée le</th>
-                <th className="px-6 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left">Ref / Token</th>
+                <th className="px-4 py-2 text-left">Claim code</th>
+                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Nom</th>
+                <th className="px-4 py-2 text-left">Statut</th>
+                <th className="px-4 py-2 text-left">Créée le</th>
+                <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -137,27 +150,32 @@ export default function FichesTable({ fiches }: Props) {
                 const type = (fiche.type ?? 'festivalier') as FicheType
                 return (
                   <tr key={fiche.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3">
-                      <div className="space-y-0.5">
+                    <td className="px-4 py-2 align-middle">
+                      <div className="flex flex-col">
                         {fiche.data?.ref && (
-                          <p className="text-xs font-bold text-gray-500">{fiche.data.ref}</p>
+                          <span className="text-[11px] font-bold text-gray-400 leading-tight">{fiche.data.ref}</span>
                         )}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 whitespace-nowrap">
                           <Link
                             href={`/${fiche.token}`}
                             target="_blank"
                             className="font-mono text-xs text-blue-600 hover:underline"
                           >
-                            {fiche.token.slice(0, 12)}…
+                            {fiche.token.slice(0, 10)}…
                           </Link>
-                          <CopyButton text={`https://badge.spoolio.fr/${fiche.token}/edit?claim=${fiche.claim_code ?? ''}`} />
-                          <EncodeNfcButton url={`https://badge.spoolio.fr/${fiche.token}`} />
+                          <CopyButton text={`https://badge.spoolio.fr/${fiche.token}`} />
+                          <EncodeNfcButton token={fiche.token} url={`https://badge.spoolio.fr/${fiche.token}`} encodedAt={fiche.nfc_encoded_at} />
                         </div>
+                        <span className={`text-[11px] font-semibold leading-tight ${fiche.nfc_encoded_at ? 'text-lime-700' : 'text-amber-500'}`}>
+                          {fiche.nfc_encoded_at
+                            ? `NFC encodé le ${new Date(fiche.nfc_encoded_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}`
+                            : 'NFC non encodé'}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-2 align-middle">
                       {fiche.claim_code ? (
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
                           <span className="font-mono text-xs font-bold tracking-widest text-gray-800">
                             {fiche.claim_code}
                           </span>
@@ -167,29 +185,29 @@ export default function FichesTable({ fiches }: Props) {
                         <span className="text-xs text-gray-300">utilisé</span>
                       )}
                     </td>
-                    <td className="px-6 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${TYPE_COLORS[type]}`}>
+                    <td className="px-4 py-2 align-middle">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${TYPE_COLORS[type]}`}>
                         {TYPE_LABELS[type]}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-gray-700 font-medium">
-                      <div>
+                    <td className="px-4 py-2 align-middle text-gray-700 font-medium">
+                      <div className="flex flex-col">
                         <span>{fiche.data?.nom ?? fiche.data?.prenom ?? '—'}</span>
                         {fiche.data?.email && (
-                          <p className="text-xs text-gray-400">{fiche.data.email}</p>
+                          <span className="text-xs text-gray-400">{fiche.data.email}</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${st.color}`}>
+                    <td className="px-4 py-2 align-middle">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${st.color}`}>
                         {st.label}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-400 whitespace-nowrap">
+                    <td className="px-4 py-2 align-middle text-xs text-gray-400 whitespace-nowrap">
                       {new Date(fiche.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' })}
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="flex items-center gap-3">
+                    <td className="px-4 py-2 align-middle">
+                      <div className="flex items-center gap-3 whitespace-nowrap">
                         {fiche.claim_code && <CopyEmailButton fiche={fiche} />}
                         <DeleteButton token={fiche.token} />
                       </div>
