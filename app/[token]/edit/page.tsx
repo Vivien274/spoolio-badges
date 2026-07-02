@@ -8,23 +8,21 @@ import type { Fiche } from '@/lib/types'
 
 type Props = {
   params: Promise<{ token: string }>
-  searchParams: Promise<{ claim?: string }>
 }
 
 async function getFiche(token: string): Promise<Fiche | null> {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('fiches')
-    .select('id, token, claim_code, password_hash, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
+    .select('id, token, password_hash, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
     .eq('token', token)
     .single()
   if (error || !data) return null
   return data as Fiche
 }
 
-export default async function EditPage({ params, searchParams }: Props) {
+export default async function EditPage({ params }: Props) {
   const { token } = await params
-  const { claim } = await searchParams
   const fiche = await getFiche(token)
 
   if (!fiche) notFound()
@@ -37,7 +35,6 @@ export default async function EditPage({ params, searchParams }: Props) {
     return (
       <ClaimForm
         token={token}
-        claimCode={claim}
         type={type}
         existingData={fiche.is_claimed ? fiche.data : undefined}
       />

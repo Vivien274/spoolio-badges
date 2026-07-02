@@ -8,7 +8,7 @@ import EncodeNfcButton from './EncodeNfcButton'
 import DeleteButton from './DeleteButton'
 import type { Fiche, FicheType } from '@/lib/types'
 
-type StatutFilter = 'all' | 'active' | 'migrated' | 'pending'
+type StatutFilter = 'all' | 'active' | 'pending'
 type TypeFilter = 'all' | FicheType
 type NfcFilter = 'all' | 'encoded' | 'not_encoded'
 
@@ -26,7 +26,6 @@ const TYPE_COLORS: Record<FicheType, string> = {
 
 function statutInfo(fiche: Fiche): { label: string; color: string; key: StatutFilter } {
   if (!fiche.is_claimed) return { label: 'En attente', color: 'bg-amber-100 text-amber-700', key: 'pending' }
-  if (fiche.claim_code) return { label: 'Migrée', color: 'bg-blue-100 text-blue-700', key: 'migrated' }
   return { label: 'Activée', color: 'bg-lime-100 text-lime-700', key: 'active' }
 }
 
@@ -109,7 +108,6 @@ export default function FichesTable({ fiches }: Props) {
             <div className="flex gap-1">
               <FilterPill value="all" current={statutFilter} label="Tous" onClick={setStatutFilter} />
               <FilterPill value="active" current={statutFilter} label="Activée" onClick={setStatutFilter} />
-              <FilterPill value="migrated" current={statutFilter} label="Migrée" onClick={setStatutFilter} />
               <FilterPill value="pending" current={statutFilter} label="En attente" onClick={setStatutFilter} />
             </div>
           </div>
@@ -136,7 +134,6 @@ export default function FichesTable({ fiches }: Props) {
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 <th className="px-4 py-2 text-left">Ref / Token</th>
-                <th className="px-4 py-2 text-left">Claim code</th>
                 <th className="px-4 py-2 text-left">Type</th>
                 <th className="px-4 py-2 text-left">Nom</th>
                 <th className="px-4 py-2 text-left">Statut</th>
@@ -174,18 +171,6 @@ export default function FichesTable({ fiches }: Props) {
                       </div>
                     </td>
                     <td className="px-4 py-2 align-middle">
-                      {fiche.claim_code ? (
-                        <div className="flex items-center gap-1.5 whitespace-nowrap">
-                          <span className="font-mono text-xs font-bold tracking-widest text-gray-800">
-                            {fiche.claim_code}
-                          </span>
-                          <CopyButton text={fiche.claim_code} />
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-300">utilisé</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2 align-middle">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${TYPE_COLORS[type]}`}>
                         {TYPE_LABELS[type]}
                       </span>
@@ -208,7 +193,7 @@ export default function FichesTable({ fiches }: Props) {
                     </td>
                     <td className="px-4 py-2 align-middle">
                       <div className="flex items-center gap-3 whitespace-nowrap">
-                        {fiche.claim_code && <CopyEmailButton fiche={fiche} />}
+                        {!fiche.is_claimed && <CopyEmailButton fiche={fiche} />}
                         <DeleteButton token={fiche.token} />
                       </div>
                     </td>

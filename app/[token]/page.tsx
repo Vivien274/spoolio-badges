@@ -16,7 +16,7 @@ async function getFiche(token: string): Promise<Fiche | null> {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('fiches')
-    .select('id, token, claim_code, password_hash, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
+    .select('id, token, password_hash, type, is_claimed, data, failed_attempts, locked_until, created_at, updated_at')
     .eq('token', token)
     .single()
   if (error || !data) return null

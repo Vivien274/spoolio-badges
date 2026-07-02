@@ -38,7 +38,7 @@ export interface FicheData {
 export interface Fiche {
   id: string
   token: string
-  claim_code: string | null
+  claim_code?: string | null
   nfc_encoded_at: string | null
   password_hash: string | null
   type: FicheType

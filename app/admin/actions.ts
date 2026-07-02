@@ -31,17 +31,8 @@ function generateToken(): string {
   return randomBytes(18).toString('base64url')
 }
 
-function generateClaimCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  const bytes = randomBytes(8)
-  return Array.from(bytes, (b) => chars[b % chars.length]).join('')
-}
-
-// ─── Fiches ──────────────────────────────────────────────────────────────────
-
 export interface GeneratedFiche {
   token: string
-  claim_code: string
   nfc_encoded_at: string | null
 }
 
@@ -62,7 +53,6 @@ export async function generateFiches(_prev: GenerateResult, formData: FormData):
 
   const rows = Array.from({ length: count }, () => ({
     token: generateToken(),
-    claim_code: generateClaimCode(),
     nfc_encoded_at: null,
     type: ficheType,
     is_claimed: false,
@@ -73,7 +63,7 @@ export async function generateFiches(_prev: GenerateResult, formData: FormData):
   const { error } = await supabase.from('fiches').insert(rows)
   if (error) return { error: 'Erreur lors de la création des fiches.' }
 
-  return { fiches: rows.map(({ token, claim_code, nfc_encoded_at }) => ({ token, claim_code, nfc_encoded_at })) }
+  return { fiches: rows.map(({ token, nfc_encoded_at }) => ({ token, nfc_encoded_at })) }
 }
 
 export async function markFicheEncoded(token: string): Promise<{ success?: boolean; error?: string; encodedAt?: string }> {

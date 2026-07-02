@@ -115,11 +115,9 @@ function validateRequired(ficheData: FicheData, type: FicheType): string | null 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
 export async function claimFiche(token: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
-  const claimCode = t(formData.get('claim_code'))
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirm_password') as string
 
-  if (!claimCode) return { error: 'Code de revendication requis.' }
   if (!password || password.length < 8) return { error: 'Le mot de passe doit faire au moins 8 caractères.' }
   if (password !== confirmPassword) return { error: 'Les mots de passe ne correspondent pas.' }
 
@@ -131,16 +129,12 @@ export async function claimFiche(token: string, _prev: ActionState, formData: Fo
   const supabase = createServerClient()
   const { data: fiche, error } = await supabase
     .from('fiches')
-    .select('claim_code, is_claimed, password_hash, type, data')
+    .select('is_claimed, password_hash, type, data')
     .eq('token', token)
     .single()
 
   if (error || !fiche) return { error: 'Fiche introuvable.' }
   if (fiche.password_hash) return { error: 'Cette fiche est déjà activée.' }
-  if (fiche.claim_code !== claimCode) {
-    await recordFailure(token)
-    return { error: 'Code de revendication incorrect.' }
-  }
 
   const ficheType = (fiche.type ?? 'festivalier') as FicheType
   const validationError = validateRequired(ficheData, ficheType)
@@ -168,7 +162,6 @@ export async function claimFiche(token: string, _prev: ActionState, formData: Fo
     .from('fiches')
     .update({
       is_claimed: true,
-      claim_code: null,
       password_hash: passwordHash,
       data: ficheData,
       failed_attempts: 0,

@@ -52,7 +52,7 @@ export default function GenerateForm() {
             <h2 className="font-black text-gray-900">
               {state.fiches.length} fiche{state.fiches.length > 1 ? 's' : ''} générée{state.fiches.length > 1 ? 's' : ''}
             </h2>
-            <p className="text-lime-800 text-sm">Encode l&apos;URL NFC sur la puce. Donne le code au client à part (carte, SMS…) pour l&apos;activation.</p>
+            <p className="text-lime-800 text-sm">Encode l&apos;URL NFC sur la puce. Le client choisira son mot de passe lors de la première activation.</p>
           </div>
 
           <div className="overflow-y-auto max-h-96 px-6 py-4 space-y-2">
@@ -72,17 +72,6 @@ export default function GenerateForm() {
                     <EncodeNfcButton token={f.token} url={`https://badge.spoolio.fr/${f.token}`} encodedAt={f.nfc_encoded_at} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-gray-500">Code</span>
-                  <span className="font-black tracking-widest text-gray-900">{f.claim_code}</span>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(f.claim_code)}
-                    className="text-blue-500 hover:underline flex-shrink-0"
-                  >
-                    Copier
-                  </button>
-                </div>
                 {f.nfc_encoded_at && (
                   <div className="text-[11px] text-lime-700 font-semibold">
                     Encodé
@@ -97,7 +86,7 @@ export default function GenerateForm() {
               type="button"
               onClick={() => {
                 const text = state.fiches!
-                  .map((f) => `URL NFC: https://badge.spoolio.fr/${f.token}\nCode: ${f.claim_code}`)
+                  .map((f) => `URL NFC: https://badge.spoolio.fr/${f.token}`)
                   .join('\n\n')
                 navigator.clipboard.writeText(text)
               }}

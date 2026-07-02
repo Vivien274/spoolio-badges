@@ -11,12 +11,11 @@ const SPOOLIO_BLUE = '#1B4FD8'
 
 interface Props {
   token: string
-  claimCode?: string
   type: FicheType
   existingData?: FicheData
 }
 
-export default function ClaimForm({ token, claimCode, type, existingData }: Props) {
+export default function ClaimForm({ token, type, existingData }: Props) {
   const action = claimFiche.bind(null, token)
   const [state, formAction, isPending] = useActionState(action, initial)
   const [photoPreview, setPhotoPreview] = useState<string | null>(existingData?.photo_url ?? null)
@@ -30,7 +29,7 @@ export default function ClaimForm({ token, claimCode, type, existingData }: Prop
       ? "Renseigne les infos de ton animal pour activer le badge."
       : type === 'enfant'
       ? "Renseigne les infos de l'enfant pour activer le badge."
-      : "Entre ton code, choisis un mot de passe, remplis ta fiche."
+      : 'Choisis un mot de passe, puis remplis ta fiche.'
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -75,21 +74,6 @@ export default function ClaimForm({ token, claimCode, type, existingData }: Prop
               <h2 className="font-black text-gray-800 text-sm uppercase tracking-wider">Activation</h2>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">
-                  Code de revendication <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="claim_code"
-                  type="text"
-                  required
-                  autoComplete="off"
-                  autoFocus
-                  defaultValue={claimCode ?? ''}
-                  placeholder="Ex : X3MT4KLU"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">
                   Mot de passe <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -97,6 +81,7 @@ export default function ClaimForm({ token, claimCode, type, existingData }: Prop
                   type="password"
                   required
                   minLength={8}
+                  autoFocus
                   placeholder="8 caractères minimum"
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400"
                 />

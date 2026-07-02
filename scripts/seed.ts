@@ -29,20 +29,11 @@ function generateToken(): string {
   return randomBytes(18).toString('base64url')
 }
 
-function generateClaimCode(): string {
-  // 8 chars sans ambiguïtés (0/O, 1/I/l)
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  const bytes = randomBytes(8)
-  return Array.from(bytes, (b) => chars[b % chars.length]).join('')
-}
-
 async function seed() {
   const token = generateToken()
-  const claimCode = generateClaimCode()
 
   const { error } = await supabase.from('fiches').insert({
     token,
-    claim_code: claimCode,
     is_claimed: false,
     data: {},
   })
@@ -55,7 +46,6 @@ async function seed() {
   console.log('\n✅  Fiche de test créée !\n')
   console.log(`  URL NFC     : https://badge.spoolio.fr/${token}`)
   console.log(`  Page edit   : https://badge.spoolio.fr/${token}/edit`)
-  console.log(`  Claim code  : ${claimCode}`)
   console.log('\n  (en local)')
   console.log(`  URL NFC     : http://localhost:3000/${token}`)
   console.log(`  Page edit   : http://localhost:3000/${token}/edit\n`)
