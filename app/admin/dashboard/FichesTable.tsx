@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import CopyButton from './CopyButton'
 import CopyEmailButton from './CopyEmailButton'
 import EncodeNfcButton from './EncodeNfcButton'
@@ -11,6 +12,8 @@ import type { Fiche, FicheType } from '@/lib/types'
 type StatutFilter = 'all' | 'active' | 'pending'
 type TypeFilter = 'all' | FicheType
 type NfcFilter = 'all' | 'encoded' | 'not_encoded'
+type SortField = 'created_at' | 'nom' | 'type' | 'statut' | 'nfc'
+type SortDirection = 'asc' | 'desc'
 
 const TYPE_LABELS: Record<FicheType, string> = {
   festivalier: 'Festivalier',
@@ -40,9 +43,20 @@ export default function FichesTable({ fiches }: Props) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('all')
   const [nfcFilter, setNfcFilter] = useState<NfcFilter>('all')
+  const [sortField, setSortField] = useState<SortField>('created_at')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  const filtered = useMemo(() => {
-    return fiches.filter((f) => {
+  function toggleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortField(field)
+      setSortDirection(field === 'created_at' ? 'desc' : 'asc')
+    }
+  }
+
+  const filteredAndSorted = useMemo(() => {
+    const list = fiches.filter((f) => {
       if (search) {
         const q = search.toLowerCase()
         const name = (f.data?.nom ?? f.data?.prenom ?? '').toLowerCase()
@@ -62,7 +76,31 @@ export default function FichesTable({ fiches }: Props) {
       if (nfcFilter === 'not_encoded' && f.nfc_encoded_at) return false
       return true
     })
-  }, [fiches, search, typeFilter, statutFilter, nfcFilter])
+
+    return list.sort((a, b) => {
+      let diff = 0
+
+      if (sortField === 'created_at') {
+        diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      } else if (sortField === 'nom') {
+        const nameA = (a.data?.nom ?? a.data?.prenom ?? a.data?.ref ?? a.token).toLowerCase()
+        const nameB = (b.data?.nom ?? b.data?.prenom ?? b.data?.ref ?? b.token).toLowerCase()
+        diff = nameA.localeCompare(nameB, 'fr')
+      } else if (sortField === 'type') {
+        const typeA = (a.type === 'enfant' ? 'humain' : a.type) ?? ''
+        const typeB = (b.type === 'enfant' ? 'humain' : b.type) ?? ''
+        diff = typeA.localeCompare(typeB, 'fr')
+      } else if (sortField === 'statut') {
+        diff = (a.is_claimed ? 1 : 0) - (b.is_claimed ? 1 : 0)
+      } else if (sortField === 'nfc') {
+        const nfcA = a.nfc_encoded_at ? new Date(a.nfc_encoded_at).getTime() : 0
+        const nfcB = b.nfc_encoded_at ? new Date(b.nfc_encoded_at).getTime() : 0
+        diff = nfcA - nfcB
+      }
+
+      return sortDirection === 'asc' ? diff : -diff
+    })
+  }, [fiches, search, typeFilter, statutFilter, nfcFilter, sortField, sortDirection])
 
   function FilterPill<T extends string>({
     value, current, label, onClick,
@@ -81,10 +119,34 @@ export default function FichesTable({ fiches }: Props) {
     )
   }
 
+  function SortableHeader({ field, label }: { field: SortField; label: string }) {
+    const isCurrent = sortField === field
+    return (
+      <th className="px-4 py-2 text-left">
+        <button
+          type="button"
+          onClick={() => toggleSort(field)}
+          className="group inline-flex items-center gap-1 font-semibold text-xs text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-wider"
+        >
+          <span>{label}</span>
+          {isCurrent ? (
+            sortDirection === 'asc' ? (
+              <ArrowUp size={13} className="text-lime-600 stroke-[2.5]" />
+            ) : (
+              <ArrowDown size={13} className="text-lime-600 stroke-[2.5]" />
+            )
+          ) : (
+            <ArrowUpDown size={12} className="opacity-30 group-hover:opacity-75 transition-opacity" />
+          )}
+        </button>
+      </th>
+    )
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-      {/* ── Filtres ── */}
+      {/* ── Filtres & Tri ── */}
       <div className="px-6 py-4 border-b border-gray-100 space-y-3">
         <div className="flex items-center gap-3 flex-wrap">
           <input
@@ -95,43 +157,69 @@ export default function FichesTable({ fiches }: Props) {
             className="flex-1 min-w-48 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400"
           />
           <span className="text-xs text-gray-400 whitespace-nowrap">
-            {filtered.length} / {fiches.length} fiche{fiches.length > 1 ? 's' : ''}
+            {filteredAndSorted.length} / {fiches.length} fiche{fiches.length > 1 ? 's' : ''}
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</span>
-            <div className="flex gap-1">
-              <FilterPill value="all" current={typeFilter} label="Tous" onClick={setTypeFilter} />
-              <FilterPill value="festivalier" current={typeFilter} label="Festivalier" onClick={setTypeFilter} />
-              <FilterPill value="humain" current={typeFilter} label="Humain" onClick={setTypeFilter} />
-              <FilterPill value="animal" current={typeFilter} label="Animal" onClick={setTypeFilter} />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</span>
+              <div className="flex gap-1">
+                <FilterPill value="all" current={typeFilter} label="Tous" onClick={setTypeFilter} />
+                <FilterPill value="festivalier" current={typeFilter} label="Festivalier" onClick={setTypeFilter} />
+                <FilterPill value="humain" current={typeFilter} label="Humain" onClick={setTypeFilter} />
+                <FilterPill value="animal" current={typeFilter} label="Animal" onClick={setTypeFilter} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Statut</span>
+              <div className="flex gap-1">
+                <FilterPill value="all" current={statutFilter} label="Tous" onClick={setStatutFilter} />
+                <FilterPill value="active" current={statutFilter} label="Activée" onClick={setStatutFilter} />
+                <FilterPill value="pending" current={statutFilter} label="En attente" onClick={setStatutFilter} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">NFC</span>
+              <div className="flex gap-1">
+                <FilterPill value="all" current={nfcFilter} label="Tous" onClick={setNfcFilter} />
+                <FilterPill value="encoded" current={nfcFilter} label="Encodé" onClick={setNfcFilter} />
+                <FilterPill value="not_encoded" current={nfcFilter} label="Non encodé" onClick={setNfcFilter} />
+              </div>
             </div>
           </div>
 
+          {/* Menu déroulant de tri rapide */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Statut</span>
-            <div className="flex gap-1">
-              <FilterPill value="all" current={statutFilter} label="Tous" onClick={setStatutFilter} />
-              <FilterPill value="active" current={statutFilter} label="Activée" onClick={setStatutFilter} />
-              <FilterPill value="pending" current={statutFilter} label="En attente" onClick={setStatutFilter} />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">NFC</span>
-            <div className="flex gap-1">
-              <FilterPill value="all" current={nfcFilter} label="Tous" onClick={setNfcFilter} />
-              <FilterPill value="encoded" current={nfcFilter} label="Encodé" onClick={setNfcFilter} />
-              <FilterPill value="not_encoded" current={nfcFilter} label="Non encodé" onClick={setNfcFilter} />
-            </div>
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tri rapide</span>
+            <select
+              value={`${sortField}-${sortDirection}`}
+              onChange={(e) => {
+                const [f, d] = e.target.value.split('-') as [SortField, SortDirection]
+                setSortField(f)
+                setSortDirection(d)
+              }}
+              className="border border-gray-200 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-lime-400 bg-white"
+            >
+              <option value="created_at-desc">📅 Date création (Récents d&apos;abord)</option>
+              <option value="created_at-asc">📅 Date création (Anciens d&apos;abord)</option>
+              <option value="nom-asc">🔤 Nom (A → Z)</option>
+              <option value="nom-desc">🔤 Nom (Z → A)</option>
+              <option value="nfc-asc">📡 Non encodés en premier</option>
+              <option value="nfc-desc">📡 Récemment encodés d&apos;abord</option>
+              <option value="statut-desc">🏷️ Activées d&apos;abord</option>
+              <option value="statut-asc">🏷️ En attente d&apos;abord</option>
+              <option value="type-asc">👤 Type de badge</option>
+            </select>
           </div>
         </div>
       </div>
 
       {/* ── Tableau ── */}
-      {filtered.length === 0 ? (
+      {filteredAndSorted.length === 0 ? (
         <div className="px-6 py-12 text-center text-gray-400 text-sm">
           Aucune fiche ne correspond aux filtres.
         </div>
@@ -140,16 +228,16 @@ export default function FichesTable({ fiches }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                <th className="px-4 py-2 text-left">Ref / Token</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-left">Nom</th>
-                <th className="px-4 py-2 text-left">Statut</th>
-                <th className="px-4 py-2 text-left">Créée le</th>
+                <SortableHeader field="nfc" label="Ref / Token / NFC" />
+                <SortableHeader field="type" label="Type" />
+                <SortableHeader field="nom" label="Nom" />
+                <SortableHeader field="statut" label="Statut" />
+                <SortableHeader field="created_at" label="Créée le" />
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((fiche) => {
+              {filteredAndSorted.map((fiche) => {
                 const st = statutInfo(fiche)
                 const type = (fiche.type ?? 'festivalier') as FicheType
                 return (
