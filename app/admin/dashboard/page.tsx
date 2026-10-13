@@ -75,7 +75,7 @@ export default async function DashboardPage() {
               <h2 className="font-black text-gray-900 mb-1">Générer des fiches</h2>
               <p className="text-sm text-gray-500">Chaque fiche est créée avec un token unique. L&apos;activation se fera au premier scan avec choix du mot de passe.</p>
             </div>
-            <VerifyNfcModal />
+            <VerifyNfcModal fiches={fiches} />
           </div>
           <GenerateForm />
         </div>
