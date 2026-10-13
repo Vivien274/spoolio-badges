@@ -29,7 +29,7 @@ export default function EditForm({ token, data, type }: Props) {
   const heading = type === 'animal' ? (data.nom || 'Mon animal') : (data.prenom || 'Ma fiche')
   const subtext =
     type === 'animal' ? 'Modifie les infos ci-dessous.' :
-    type === 'enfant' ? 'Modifie les infos ci-dessous.' :
+    (type === 'humain' || type === 'enfant') ? 'Modifie les infos ci-dessous.' :
     'Modifie tes infos ci-dessous.'
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -83,8 +83,8 @@ export default function EditForm({ token, data, type }: Props) {
             {type === 'festivalier' && (
               <FestivalierFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
             )}
-            {type === 'enfant' && (
-              <EnfantFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
+            {(type === 'humain' || type === 'enfant') && (
+              <HumainFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
             )}
             {type === 'animal' && (
               <AnimalFields data={data} photoPreview={photoPreview} photoError={photoError} fileRef={fileRef} onPhotoChange={handlePhotoChange} />
@@ -276,14 +276,17 @@ function FestivalierFields({ data: d, photoPreview, photoError, fileRef, onPhoto
   )
 }
 
-function EnfantFields({ data: d, photoPreview, photoError, fileRef, onPhotoChange }: FieldsProps) {
+function HumainFields({ data: d, photoPreview, photoError, fileRef, onPhotoChange }: FieldsProps) {
+  const telContact1 = d.tel_contact_1 ?? d.tel_parent_1 ?? ''
+  const telContact2 = d.tel_contact_2 ?? d.tel_parent_2 ?? ''
+
   return (
     <>
       <section className="space-y-3">
         <h2 className="font-black text-gray-800 text-sm uppercase tracking-wider">Identification</h2>
         <div>
           <label className="block text-xs font-semibold text-gray-500 mb-1">
-            Prénom de l&apos;enfant <span className="text-red-500">*</span>
+            Prénom <span className="text-red-500">*</span>
           </label>
           <input name="prenom" type="text" required defaultValue={d.prenom ?? ''} placeholder="Prénom" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400" />
         </div>
@@ -293,14 +296,14 @@ function EnfantFields({ data: d, photoPreview, photoError, fileRef, onPhotoChang
       <div className="border-t border-gray-100" />
 
       <section className="space-y-3">
-        <h2 className="font-black text-gray-800 text-sm uppercase tracking-wider">Contacts parentaux</h2>
+        <h2 className="font-black text-gray-800 text-sm uppercase tracking-wider">Contacts d&apos;urgence</h2>
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">Parent / Tuteur 1 <span className="text-red-500">*</span></label>
-          <input name="tel_parent_1" type="tel" required defaultValue={d.tel_parent_1 ?? ''} placeholder="06 12 34 56 78" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
+          <label className="block text-xs font-semibold text-gray-500 mb-1">Contact 1 <span className="text-red-500">*</span></label>
+          <input name="tel_contact_1" type="tel" required defaultValue={telContact1} placeholder="06 12 34 56 78" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">Parent / Tuteur 2</label>
-          <input name="tel_parent_2" type="tel" defaultValue={d.tel_parent_2 ?? ''} placeholder="06 98 76 54 32" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
+          <label className="block text-xs font-semibold text-gray-500 mb-1">Contact 2</label>
+          <input name="tel_contact_2" type="tel" defaultValue={telContact2} placeholder="06 98 76 54 32" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200" />
         </div>
       </section>
 

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Phone, AlertTriangle, Tent, Globe, MessageCircle } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase'
 import Particles from '@/app/components/Particles'
-import FicheEnfant from './FicheEnfant'
+import FicheHumain from './FicheHumain'
 import FicheAnimal from './FicheAnimal'
 import type { Fiche } from '@/lib/types'
 
@@ -27,13 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params
   const fiche = await getFiche(token)
   const type = fiche?.type ?? 'festivalier'
+  const isHumain = type === 'humain' || type === 'enfant'
   const name =
     type === 'animal' ? fiche?.data?.nom :
-    type === 'enfant' ? fiche?.data?.prenom :
+    isHumain ? fiche?.data?.prenom :
     fiche?.data?.prenom
   const suffix =
     type === 'animal' ? 'Fiche animal SOS' :
-    type === 'enfant' ? 'Fiche enfant SOS' :
+    isHumain ? 'Fiche SOS' :
     'Fiche SOS festivalier'
   return {
     title: name ? `${name} — ${suffix}` : `${suffix} — Spoolio Badge`,
@@ -73,7 +74,7 @@ export default async function FichePage({ params }: Props) {
 
   const type = fiche.type ?? 'festivalier'
 
-  if (type === 'enfant') return <FicheEnfant fiche={fiche} />
+  if (type === 'humain' || type === 'enfant') return <FicheHumain fiche={fiche} />
   if (type === 'animal') return <FicheAnimal fiche={fiche} />
 
   // ── festivalier (default) ──

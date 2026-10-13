@@ -1,4 +1,4 @@
-export type FicheType = 'festivalier' | 'enfant' | 'animal'
+export type FicheType = 'festivalier' | 'humain' | 'animal' | 'enfant'
 
 export interface FicheData {
   // ─ Commun ─
@@ -20,10 +20,12 @@ export interface FicheData {
   camping?: string
   langues?: string
 
-  // ─ Enfant ─
-  tel_parent_1?: string
-  tel_parent_2?: string
-  medical?: string   // aussi utilisé par animal
+  // ─ Humain (anciennement Enfant) ─
+  tel_contact_1?: string
+  tel_contact_2?: string
+  tel_parent_1?: string  // conservé pour rétrocompatibilité
+  tel_parent_2?: string  // conservé pour rétrocompatibilité
+  medical?: string       // aussi utilisé par animal
 
   // ─ Animal ─
   nom?: string

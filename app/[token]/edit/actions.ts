@@ -66,6 +66,9 @@ function t(val: FormDataEntryValue | null): string | undefined {
 }
 
 function extractFicheData(formData: FormData): FicheData {
+  const telContact1 = t(formData.get('tel_contact_1')) || t(formData.get('tel_parent_1'))
+  const telContact2 = t(formData.get('tel_contact_2')) || t(formData.get('tel_parent_2'))
+
   return {
     // Commun
     ref: t(formData.get('ref')),
@@ -83,9 +86,11 @@ function extractFicheData(formData: FormData): FicheData {
     groupe_sanguin: t(formData.get('groupe_sanguin')),
     camping: t(formData.get('camping')),
     langues: t(formData.get('langues')),
-    // Enfant
-    tel_parent_1: t(formData.get('tel_parent_1')),
-    tel_parent_2: t(formData.get('tel_parent_2')),
+    // Humain (avec compatibilité enfant)
+    tel_contact_1: telContact1,
+    tel_contact_2: telContact2,
+    tel_parent_1: telContact1,
+    tel_parent_2: telContact2,
     // Animal
     nom: t(formData.get('nom')),
     type_animal: t(formData.get('type_animal')),
@@ -102,9 +107,9 @@ function validateRequired(ficheData: FicheData, type: FicheType): string | null 
     if (!ficheData.prenom) return 'Le prénom est requis.'
     if (!ficheData.contact1_nom) return 'Le nom du contact 1 est requis.'
     if (!ficheData.contact1_tel) return 'Le téléphone du contact 1 est requis.'
-  } else if (type === 'enfant') {
-    if (!ficheData.prenom) return 'Le prénom de l\'enfant est requis.'
-    if (!ficheData.tel_parent_1) return 'Le téléphone du parent 1 est requis.'
+  } else if (type === 'humain' || type === 'enfant') {
+    if (!ficheData.prenom) return 'Le prénom est requis.'
+    if (!ficheData.tel_contact_1 && !ficheData.tel_parent_1) return 'Le téléphone du contact 1 est requis.'
   } else if (type === 'animal') {
     if (!ficheData.nom) return 'Le nom de l\'animal est requis.'
     if (!ficheData.tel_proprio_1) return 'Le téléphone du propriétaire est requis.'
@@ -140,20 +145,23 @@ export async function claimFiche(token: string, _prev: ActionState, formData: Fo
   const validationError = validateRequired(ficheData, ficheType)
   if (validationError) return { error: validationError }
 
+  // Conserver la photo et données existantes
+  const existing = fiche.data as FicheData | null
+  const mergedData: FicheData = {
+    ...existing,
+    ...ficheData,
+  }
+
   // Photo optionnelle
   const photoFile = formData.get('photo') as File | null
   if (photoFile && photoFile.size > 0) {
     const result = await uploadPhoto(token, photoFile)
     if ('error' in result) return { error: result.error }
-    ficheData.photo_url = result.url
-    ficheData.photo_path = result.path
-  } else {
-    // Conserver la photo existante (fiches migrées)
-    const existing = fiche.data as FicheData | null
-    if (existing?.photo_url) {
-      ficheData.photo_url = existing.photo_url
-      ficheData.photo_path = existing.photo_path
-    }
+    mergedData.photo_url = result.url
+    mergedData.photo_path = result.path
+  } else if (existing?.photo_url) {
+    mergedData.photo_url = existing.photo_url
+    mergedData.photo_path = existing.photo_path
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
@@ -163,7 +171,7 @@ export async function claimFiche(token: string, _prev: ActionState, formData: Fo
     .update({
       is_claimed: true,
       password_hash: passwordHash,
-      data: ficheData,
+      data: mergedData,
       failed_attempts: 0,
       locked_until: null,
     })
@@ -211,22 +219,27 @@ export async function updateFiche(token: string, _prev: ActionState, formData: F
   const validationError = validateRequired(ficheData, ficheType)
   if (validationError) return { error: validationError }
 
-  // Conserver photo existante si pas de nouvelle
   const existingData = existing?.data as FicheData | null
+  const mergedData: FicheData = {
+    ...existingData,
+    ...ficheData,
+  }
+
+  // Conserver photo existante si pas de nouvelle
   if (existingData?.photo_url) {
-    ficheData.photo_url = existingData.photo_url
-    ficheData.photo_path = existingData.photo_path
+    mergedData.photo_url = existingData.photo_url
+    mergedData.photo_path = existingData.photo_path
   }
 
   const photoFile = formData.get('photo') as File | null
   if (photoFile && photoFile.size > 0) {
     const result = await uploadPhoto(token, photoFile)
     if ('error' in result) return { error: result.error }
-    ficheData.photo_url = result.url
-    ficheData.photo_path = result.path
+    mergedData.photo_url = result.url
+    mergedData.photo_path = result.path
   }
 
-  const { error } = await supabase.from('fiches').update({ data: ficheData }).eq('token', token)
+  const { error } = await supabase.from('fiches').update({ data: mergedData }).eq('token', token)
   if (error) return { error: 'Erreur lors de la sauvegarde. Réessaie.' }
   return { success: true, message: '✅ Fiche mise à jour !' }
 }

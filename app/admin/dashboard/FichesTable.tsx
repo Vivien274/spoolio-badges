@@ -14,12 +14,14 @@ type NfcFilter = 'all' | 'encoded' | 'not_encoded'
 
 const TYPE_LABELS: Record<FicheType, string> = {
   festivalier: 'Festivalier',
-  enfant: 'Enfant',
+  humain: 'Humain',
+  enfant: 'Humain',
   animal: 'Animal',
 }
 
 const TYPE_COLORS: Record<FicheType, string> = {
   festivalier: 'bg-purple-100 text-purple-700',
+  humain: 'bg-sky-100 text-sky-700',
   enfant: 'bg-sky-100 text-sky-700',
   animal: 'bg-orange-100 text-orange-700',
 }
@@ -49,7 +51,12 @@ export default function FichesTable({ fiches }: Props) {
         const token = f.token.toLowerCase()
         if (!name.includes(q) && !ref.includes(q) && !email.includes(q) && !token.includes(q)) return false
       }
-      if (typeFilter !== 'all' && (f.type ?? 'festivalier') !== typeFilter) return false
+      if (typeFilter !== 'all') {
+        const rawType = f.type ?? 'festivalier'
+        const normalizedType = rawType === 'enfant' ? 'humain' : rawType
+        const normalizedFilter = typeFilter === 'enfant' ? 'humain' : typeFilter
+        if (normalizedType !== normalizedFilter) return false
+      }
       if (statutFilter !== 'all' && statutInfo(f).key !== statutFilter) return false
       if (nfcFilter === 'encoded' && !f.nfc_encoded_at) return false
       if (nfcFilter === 'not_encoded' && f.nfc_encoded_at) return false
@@ -98,7 +105,7 @@ export default function FichesTable({ fiches }: Props) {
             <div className="flex gap-1">
               <FilterPill value="all" current={typeFilter} label="Tous" onClick={setTypeFilter} />
               <FilterPill value="festivalier" current={typeFilter} label="Festivalier" onClick={setTypeFilter} />
-              <FilterPill value="enfant" current={typeFilter} label="Enfant" onClick={setTypeFilter} />
+              <FilterPill value="humain" current={typeFilter} label="Humain" onClick={setTypeFilter} />
               <FilterPill value="animal" current={typeFilter} label="Animal" onClick={setTypeFilter} />
             </div>
           </div>

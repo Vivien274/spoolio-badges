@@ -181,12 +181,17 @@ async function migrateEnfants() {
     const isClaimed = r['tag_active'] === '1'
     const claimCode = existing?.claim_code ?? generateClaimCode()
 
+    const tel1 = stripTel(r['telephone_parent_1_link'])
+    const tel2 = stripTel(r['telephone_parent_2_link'])
+
     const ficheData = {
       ref: nonempty(r['post_title']),
       email: nonempty(r['owner_email']),
       prenom: nonempty(r['prenom_enfant']),
-      tel_parent_1: stripTel(r['telephone_parent_1_link']),
-      tel_parent_2: stripTel(r['telephone_parent_2_link']),
+      tel_contact_1: tel1,
+      tel_contact_2: tel2,
+      tel_parent_1: tel1,
+      tel_parent_2: tel2,
       message: nonempty(r['message_personnalise']),
       medical: nonempty(r['allergies_infos_medicales']),
     }
@@ -194,7 +199,7 @@ async function migrateEnfants() {
     const { error } = await supabase.from('fiches').upsert(
       {
         token,
-        type: 'enfant',
+        type: 'humain',
         is_claimed: isClaimed,
         claim_code: claimCode,
         password_hash: null,

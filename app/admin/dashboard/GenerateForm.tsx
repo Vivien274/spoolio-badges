@@ -19,7 +19,7 @@ export default function GenerateForm() {
           className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-lime-400 bg-white font-semibold"
         >
           <option value="festivalier">Festivalier</option>
-          <option value="enfant">Enfant</option>
+          <option value="humain">Humain</option>
           <option value="animal">Animal</option>
         </select>
         <input

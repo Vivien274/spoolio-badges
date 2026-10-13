@@ -22,12 +22,12 @@ const ENFANT_COLORS = ['#FDE68A', '#FDA4AF', '#C4B5FD', '#6EE7B7', '#FCA5A5', '#
 const ANIMAL_COLORS = ['#FCD34D', '#FDE68A', '#A7F3D0', '#FCA5A5', '#D4A27F', '#FEF3C7']
 
 interface Props {
-  variant?: 'festivalier' | 'enfant' | 'animal'
+  variant?: 'festivalier' | 'humain' | 'enfant' | 'animal'
 }
 
 export default function Particles({ variant = 'festivalier' }: Props) {
   const colors =
-    variant === 'enfant' ? ENFANT_COLORS :
+    variant === 'humain' || variant === 'enfant' ? ENFANT_COLORS :
     variant === 'animal' ? ANIMAL_COLORS :
     null // blanc par défaut
 

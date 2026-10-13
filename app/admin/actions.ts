@@ -48,8 +48,8 @@ export async function generateFiches(_prev: GenerateResult, formData: FormData):
   const raw = formData.get('count') as string
   const count = Math.min(Math.max(parseInt(raw, 10) || 1, 1), 100)
   const type = formData.get('type') as string || 'festivalier'
-  const validTypes = ['festivalier', 'enfant', 'animal']
-  const ficheType = validTypes.includes(type) ? type : 'festivalier'
+  const validTypes = ['festivalier', 'humain', 'animal', 'enfant']
+  const ficheType = validTypes.includes(type) ? (type === 'enfant' ? 'humain' : type) : 'festivalier'
 
   const rows = Array.from({ length: count }, () => ({
     token: generateToken(),
