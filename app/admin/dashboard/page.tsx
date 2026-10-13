@@ -3,6 +3,7 @@ import { getAdminSession } from '@/lib/admin-session'
 import { adminLogout } from '../actions'
 import { createServerClient } from '@/lib/supabase'
 import GenerateForm from './GenerateForm'
+import VerifyNfcModal from './VerifyNfcModal'
 import FichesTable from './FichesTable'
 import type { Fiche } from '@/lib/types'
 
@@ -67,10 +68,15 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Génération ── */}
+        {/* ── Génération & Vérification ── */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="font-black text-gray-900 mb-1">Générer des fiches</h2>
-          <p className="text-sm text-gray-500 mb-4">Chaque fiche est créée avec un token unique. L&apos;activation se fera au premier scan avec choix du mot de passe.</p>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="font-black text-gray-900 mb-1">Générer des fiches</h2>
+              <p className="text-sm text-gray-500">Chaque fiche est créée avec un token unique. L&apos;activation se fera au premier scan avec choix du mot de passe.</p>
+            </div>
+            <VerifyNfcModal />
+          </div>
           <GenerateForm />
         </div>
 

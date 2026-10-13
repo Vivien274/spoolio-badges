@@ -7,8 +7,8 @@
  *   npm start
  *
  * Branche le lecteur, pose une puce NTAG21x (213/215/216) dessus, puis
- * clique "Encoder" dans l'admin. Le pont écrit l'URL en NDEF (record URI)
- * à partir de la page 4, comme attendu pour ce type de puce.
+ * clique "Encoder" dans l'admin. Le pont écrit ou lit l'URL en NDEF (record URI)
+ * à partir de la page 4.
  */
 
 const { createServer } = require('node:http')
@@ -59,8 +59,37 @@ function buildNdefUriPage(url) {
   return padded
 }
 
+function parseNdefUri(buffer) {
+  if (!buffer || buffer.length < 7) return null
+
+  for (let i = 0; i < buffer.length - 6; i++) {
+    if (buffer[i] === 0x03 && buffer[i + 2] === 0xd1 && buffer[i + 3] === 0x01 && buffer[i + 5] === 0x55) {
+      const payloadLen = buffer[i + 4]
+      const code = buffer[i + 6]
+      const rest = buffer.slice(i + 7, i + 6 + payloadLen).toString('ascii')
+      const prefixMap = {
+        0x01: 'http://www.',
+        0x02: 'https://www.',
+        0x03: 'http://',
+        0x04: 'https://',
+        0x05: 'tel:',
+        0x06: 'mailto:',
+      }
+      return (prefixMap[code] || '') + rest
+    }
+  }
+
+  const str = buffer.toString('utf-8')
+  const match = str.match(/https?:\/\/[a-zA-Z0-9.\-_~:\/?#\[\]@!$&'()*+,;=]+/)
+  if (match) return match[0]
+  return null
+}
+
 let activeReader = null
 let cardPresent = false
+let currentCard = null
+let scanCounter = 0
+const scanHistory = []
 
 const nfc = new NFC()
 
@@ -68,13 +97,31 @@ nfc.on('reader', (reader) => {
   console.log(`Lecteur connecté : ${reader.reader.name}`)
   activeReader = reader
 
-  reader.on('card', () => {
+  reader.on('card', async (card) => {
     cardPresent = true
-    console.log('Puce détectée — prête à encoder.')
+    const scanId = ++scanCounter
+    currentCard = { scanId, uid: card.uid, url: null, timestamp: new Date().toISOString() }
+    
+    // Lire le contenu de la puce (page 4 sur 64 octets)
+    try {
+      const data = await reader.read(4, 64)
+      const url = parseNdefUri(data)
+      currentCard.url = url
+      scanHistory.push({ scanId, uid: card.uid, url, timestamp: currentCard.timestamp })
+
+      if (url) {
+        console.log(`[LECTURE #${scanId}] Puce UID: ${card.uid} -> ${url}`)
+      } else {
+        console.log(`[LECTURE #${scanId}] Puce UID: ${card.uid} -> Non encodée / vide`)
+      }
+    } catch (err) {
+      console.log(`[LECTURE #${scanId}] Puce UID: ${card.uid} - Erreur : ${err.message}`)
+    }
   })
 
   reader.on('card.off', () => {
     cardPresent = false
+    currentCard = null
     console.log('Puce retirée.')
   })
 
@@ -86,6 +133,7 @@ nfc.on('reader', (reader) => {
     console.log('Lecteur déconnecté.')
     activeReader = null
     cardPresent = false
+    currentCard = null
   })
 })
 
@@ -125,7 +173,31 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && req.url === '/status') {
-    send(res, 200, { readerConnected: !!activeReader, cardPresent })
+    send(res, 200, {
+      readerConnected: !!activeReader,
+      readerName: activeReader?.reader?.name || null,
+      cardPresent,
+      currentCard,
+      history: scanHistory,
+    })
+    return
+  }
+
+  if (req.method === 'GET' && req.url === '/read') {
+    if (!activeReader || !cardPresent) {
+      send(res, 409, { error: 'Aucune puce détectée sur le lecteur.' })
+      return
+    }
+    send(res, 200, {
+      success: true,
+      card: currentCard,
+    })
+    return
+  }
+
+  if (req.method === 'POST' && req.url === '/clear-history') {
+    scanHistory.length = 0
+    send(res, 200, { success: true })
     return
   }
 
@@ -158,5 +230,5 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Pont NFC démarré sur http://localhost:${PORT}`)
-  console.log("Branche le lecteur ACR122U, pose une puce, puis clique \"Encoder\" dans l'admin.")
+  console.log("Branche le lecteur ACR122U, pose une puce, puis clique \"Encoder\" ou utilise le vérificateur.")
 })
